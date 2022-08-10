@@ -1,0 +1,85 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:alpine
+    # container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./healthchecks:/healthchecks"
+    networks:
+      - back-tier      
+
+  db:
+    image: postgres:9.4
+    # container_name: db
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+      - "./healthchecks:/healthchecks"
+    networks:
+      - back-tier      
+    ports:
+      - "5432:5432"
+
+
+  vote:
+    image: ahmedemad111/vote
+    ports:
+      - "4999:80"
+    deploy:
+      replicas: 1
+    volumes:
+     - vote:/app
+    networks:
+      - front-tier
+      - back-tier
+
+
+  result:
+    image: ahmedemad111/result
+    volumes:
+      - result:/app
+    ports:
+      - "4998:80"
+      - "5858:5858"
+    networks:
+      - front-tier
+      - back-tier
+
+      
+  worker:
+    image: ahmedemad111/worker
+    networks:
+      - back-tier
+
+
+  # visualizer:
+  #   image: dockersamples/visualizer:stable
+  #   ports: 
+  #     - "4997:8080"
+
+# you have to define networks here in order to use them under SERVICES object
+networks:
+  front-tier:
+  back-tier:
+
+# you have to define volums here in order to use them under SERVICES object
+# VOLUMES will be created under /var/lib/docker/volumes directory
+volumes:
+  db-data:
+  vote:
+  result:
+
+
+
+
+
+
+
+
+
+
